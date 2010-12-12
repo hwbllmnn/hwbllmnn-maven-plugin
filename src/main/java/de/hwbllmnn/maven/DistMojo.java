@@ -53,7 +53,10 @@ public class DistMojo extends AbstractMojo {
 		List<Artifact> artifacts = new LinkedList<Artifact>();
 		for (Object o : project.getCollectedProjects()) {
 			MavenProject module = (MavenProject) o;
-			artifacts.addAll(module.getAttachedArtifacts());
+			List<?> arts = module.getAttachedArtifacts();
+			for (Object obj : arts) {
+				artifacts.add((Artifact) obj);
+			}
 			if (!includeOnlyAttachedArtifacts) {
 				artifacts.add(module.getArtifact());
 			}
