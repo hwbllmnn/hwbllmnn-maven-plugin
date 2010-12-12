@@ -35,12 +35,18 @@ public class DistMojo extends AbstractMojo {
 	 */
 	private MavenProject project;
 
+	/**
+	 * @parameter default-value="false"
+	 * @required
+	 */
+	private boolean includeOnlyAttachedArtifacts;
+
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		Log log = getLog();
 		File basedir = project.getBasedir();
 		File target = new File(basedir, "target/dist");
 
-		if (!target.mkdirs()) {
+		if (!target.isDirectory() && !target.mkdirs()) {
 			log.warn("Could not create target directory: " + target);
 		}
 
@@ -48,7 +54,9 @@ public class DistMojo extends AbstractMojo {
 		for (Object o : project.getCollectedProjects()) {
 			MavenProject module = (MavenProject) o;
 			artifacts.addAll(module.getAttachedArtifacts());
-			artifacts.add(module.getArtifact());
+			if (!includeOnlyAttachedArtifacts) {
+				artifacts.add(module.getArtifact());
+			}
 		}
 
 		log.info("Collected artifacts: " + artifacts);
