@@ -19,6 +19,8 @@ import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 
 /**
+ * This goal is used to assemble the artifacts of the submodules into the target/dist directory.
+ * 
  * @goal dist
  * 
  * @author <a href="mailto:schmitz@lat-lon.de">Andreas Schmitz</a>
@@ -36,6 +38,8 @@ public class DistMojo extends AbstractMojo {
 	private MavenProject project;
 
 	/**
+	 * If set to true, default artifacts will not be copied.
+	 * 
 	 * @parameter default-value="false"
 	 * @required
 	 */
