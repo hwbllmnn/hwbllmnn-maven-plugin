@@ -22,6 +22,7 @@ import org.apache.maven.project.MavenProject;
  * This goal is used to assemble the artifacts of the submodules into the target/dist directory.
  * 
  * @goal dist
+ * @phase install
  * 
  * @author <a href="mailto:schmitz@lat-lon.de">Andreas Schmitz</a>
  * @author last edited by: $Author: aschmitz $
@@ -45,6 +46,14 @@ public class DistMojo extends AbstractMojo {
 	 */
 	private boolean includeOnlyAttachedArtifacts;
 
+	/**
+	 * If set to true, the artifacts of this project will be included along with the submodules' artifacts.
+	 * 
+	 * @parameter default-value="false"
+	 * @required
+	 */
+	private boolean includeProjectArtifacts;
+
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		Log log = getLog();
 		File basedir = project.getBasedir();
@@ -55,7 +64,12 @@ public class DistMojo extends AbstractMojo {
 		}
 
 		List<Artifact> artifacts = new LinkedList<Artifact>();
-		for (Object o : project.getCollectedProjects()) {
+		@SuppressWarnings("unchecked")
+		List<Object> modules = project.getCollectedProjects();
+		if (includeProjectArtifacts) {
+			modules.add(project);
+		}
+		for (Object o : modules) {
 			MavenProject module = (MavenProject) o;
 			List<?> arts = module.getAttachedArtifacts();
 			for (Object obj : arts) {
@@ -70,6 +84,10 @@ public class DistMojo extends AbstractMojo {
 
 		for (Artifact a : artifacts) {
 			File file = a.getFile();
+			if (file == null) {
+				log.warn("Skipping non-existing artifact: " + a);
+				continue;
+			}
 			try {
 				copyFile(file, new File(target, file.getName()));
 				log.info("Copied artifact " + file.getName());
