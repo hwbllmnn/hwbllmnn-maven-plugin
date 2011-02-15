@@ -16,6 +16,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URI;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -89,6 +91,15 @@ public class JSArchiveMojo extends AbstractMojo {
 		ZipOutputStream out = null;
 		Artifact artifact = project.getArtifact();
 
+		List<File> list = new LinkedList<File>();
+
+		for (Object o : project.getDependencyArtifacts()) {
+			Artifact a = (Artifact) o;
+			if (a.getType().equals("jslib")) {
+				list.add(a.getFile());
+			}
+		}
+
 		File target = new File(project.getBasedir(), "target");
 		if (!target.exists() && !target.mkdirs()) {
 			throw new MojoFailureException("Could not create target directory!");
@@ -100,6 +111,9 @@ public class JSArchiveMojo extends AbstractMojo {
 		try {
 			out = new ZipOutputStream(new FileOutputStream(file));
 			zip(dir, out, dir.toURI());
+			for (File f : list) {
+				zip(f, out, f.toURI());
+			}
 		} catch (IOException e) {
 			getLog().error(e);
 		} finally {

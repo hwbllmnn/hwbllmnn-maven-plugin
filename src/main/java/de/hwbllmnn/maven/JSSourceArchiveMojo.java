@@ -13,9 +13,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.handler.DefaultArtifactHandler;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -82,6 +85,15 @@ public class JSSourceArchiveMojo extends AbstractMojo {
 		AttachedArtifact artifact = new AttachedArtifact(project.getArtifact(), "jslib", "source",
 				new DefaultArtifactHandler("jslib"));
 
+		List<File> list = new LinkedList<File>();
+
+		for (Object o : project.getDependencyArtifacts()) {
+			Artifact a = (Artifact) o;
+			if (a.getType().equals("jslib")) {
+				list.add(a.getFile());
+			}
+		}
+
 		File target = new File(project.getBasedir(), "target");
 		if (!target.exists() && !target.mkdirs()) {
 			throw new MojoFailureException("Could not create target directory!");
@@ -94,6 +106,9 @@ public class JSSourceArchiveMojo extends AbstractMojo {
 		try {
 			out = new ZipOutputStream(new FileOutputStream(file));
 			zip(dir, out, dir.toURI());
+			for (File f : list) {
+				zip(f, out, f.toURI());
+			}
 		} catch (IOException e) {
 			getLog().error(e);
 		} finally {
