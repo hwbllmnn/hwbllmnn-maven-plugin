@@ -5,7 +5,6 @@
 package de.hwbllmnn.maven;
 
 import static org.apache.commons.io.IOUtils.closeQuietly;
-import static org.apache.commons.io.IOUtils.copy;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -45,9 +44,8 @@ public class JSArchiveMojo extends AbstractMojo {
 	private MavenProject project;
 
 	private static void zip(File f, ZipOutputStream out, URI parent) throws IOException {
-		if (f.getName().equalsIgnoreCase(".svn")) {
+		if (f.getName().equalsIgnoreCase(".svn") || f.getName().equalsIgnoreCase("CVS"))
 			return;
-		}
 
 		if (parent == null) {
 			parent = f.toURI();
@@ -78,7 +76,6 @@ public class JSArchiveMojo extends AbstractMojo {
 					yui.compress(rout, -1, true, false, false, false);
 					rout.flush();
 				}
-				copy(is, out);
 			} finally {
 				closeQuietly(is);
 			}

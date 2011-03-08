@@ -42,13 +42,11 @@ public class JSSourceArchiveMojo extends AbstractMojo {
 	private MavenProject project;
 
 	private static void zip(File f, ZipOutputStream out, URI parent) throws IOException {
-		if (f.getName().equalsIgnoreCase(".svn")) {
+		if (f.getName().equalsIgnoreCase(".svn") || f.getName().equalsIgnoreCase("CVS"))
 			return;
-		}
 
-		if (parent == null) {
+		if (parent == null)
 			parent = f.toURI();
-		}
 
 		String name = parent.relativize(f.getAbsoluteFile().toURI()).toString();
 		if (f.isDirectory()) {
@@ -58,9 +56,8 @@ public class JSSourceArchiveMojo extends AbstractMojo {
 			}
 			File[] fs = f.listFiles();
 			if (fs != null) {
-				for (File f2 : fs) {
+				for (File f2 : fs)
 					zip(f2, out, parent);
-				}
 			}
 		} else {
 			ZipEntry e = new ZipEntry(name);
@@ -71,7 +68,6 @@ public class JSSourceArchiveMojo extends AbstractMojo {
 				if (f.getName().endsWith(".js")) {
 					copy(is, out);
 				}
-				copy(is, out);
 			} finally {
 				closeQuietly(is);
 			}
