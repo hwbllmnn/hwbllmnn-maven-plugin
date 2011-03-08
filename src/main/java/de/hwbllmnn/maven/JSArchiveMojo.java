@@ -18,6 +18,7 @@ import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import org.apache.maven.artifact.Artifact;
@@ -43,6 +44,50 @@ public class JSArchiveMojo extends AbstractMojo {
 	 */
 	private MavenProject project;
 
+	static void unzip(final InputStream in, File dir) throws IOException {
+		ZipInputStream zin = new ZipInputStream(in);
+		ZipEntry entry;
+
+		if (!dir.exists()) {
+			dir.mkdir();
+		}
+
+		boolean rootRead = false;
+
+		while ((entry = zin.getNextEntry()) != null) {
+			if (entry.isDirectory()) {
+				File f = new File(dir, entry.getName());
+				// avoid directory-in-directory
+				if (!rootRead) {
+					if (f.getName().equals(dir.getName())) {
+						dir = dir.getParentFile();
+					}
+				}
+				rootRead = true;
+				f.mkdir();
+				continue;
+			}
+
+			File f = new File(dir, entry.getName());
+
+			if (f.exists()) {
+				continue;
+			}
+
+			byte[] bs = new byte[16384];
+			File parent = f.getAbsoluteFile().getParentFile();
+			parent.mkdirs();
+			FileOutputStream out = new FileOutputStream(f);
+			int read;
+			while ((read = zin.read(bs)) != -1) {
+				out.write(bs, 0, read);
+			}
+			out.close();
+		}
+
+		in.close();
+	}
+
 	private static void zip(File f, ZipOutputStream out, URI parent) throws IOException {
 		if (f.getName().equalsIgnoreCase(".svn") || f.getName().equalsIgnoreCase("CVS"))
 			return;
@@ -64,13 +109,13 @@ public class JSArchiveMojo extends AbstractMojo {
 				}
 			}
 		} else {
-			ZipEntry e = new ZipEntry(name);
-			out.putNextEntry(e);
 			InputStream is = null;
 			Writer rout = null;
 			try {
 				is = new FileInputStream(f);
 				if (f.getName().endsWith(".js")) {
+					ZipEntry e = new ZipEntry(name);
+					out.putNextEntry(e);
 					JavaScriptCompressor yui = new JavaScriptCompressor(new InputStreamReader(is, "UTF-8"), null);
 					rout = new OutputStreamWriter(out, "UTF-8");
 					yui.compress(rout, -1, true, false, false, false);
@@ -109,7 +154,14 @@ public class JSArchiveMojo extends AbstractMojo {
 			out = new ZipOutputStream(new FileOutputStream(file));
 			zip(dir, out, dir.toURI());
 			for (File f : list) {
-				zip(f, out, f.toURI());
+				File tmp = new File(target, f.getName());
+				FileInputStream in = new FileInputStream(f);
+				try {
+					unzip(in, tmp);
+					zip(tmp, out, tmp.getAbsoluteFile().toURI());
+				} finally {
+					closeQuietly(in);
+				}
 			}
 		} catch (IOException e) {
 			getLog().error(e);

@@ -4,6 +4,7 @@
  */
 package de.hwbllmnn.maven;
 
+import static de.hwbllmnn.maven.JSArchiveMojo.unzip;
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.copy;
 
@@ -19,7 +20,12 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.factory.ArtifactFactory;
 import org.apache.maven.artifact.handler.DefaultArtifactHandler;
+import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
+import org.apache.maven.artifact.resolver.ArtifactResolutionException;
+import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -40,6 +46,23 @@ public class JSSourceArchiveMojo extends AbstractMojo {
 	 * @readonly
 	 */
 	private MavenProject project;
+
+	/**
+	 * @component
+	 */
+	private ArtifactResolver artifactResolver;
+
+	/**
+	 * 
+	 * @component
+	 */
+	private ArtifactFactory artifactFactory;
+
+	/**
+	 * 
+	 * @parameter expression="${localRepository}"
+	 */
+	private ArtifactRepository localRepository;
 
 	private static void zip(File f, ZipOutputStream out, URI parent) throws IOException {
 		if (f.getName().equalsIgnoreCase(".svn") || f.getName().equalsIgnoreCase("CVS"))
@@ -86,7 +109,18 @@ public class JSSourceArchiveMojo extends AbstractMojo {
 		for (Object o : project.getDependencyArtifacts()) {
 			Artifact a = (Artifact) o;
 			if (a.getType().equals("jslib")) {
-				list.add(a.getFile());
+				Artifact source = artifactFactory.createArtifactWithClassifier(a.getGroupId(), a.getArtifactId(), a
+						.getVersion(), "jslib", "source");
+				try {
+					artifactResolver.resolve(source, project.getRemoteArtifactRepositories(), localRepository);
+				} catch (ArtifactResolutionException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (ArtifactNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				list.add(source.getFile());
 			}
 		}
 
@@ -103,7 +137,14 @@ public class JSSourceArchiveMojo extends AbstractMojo {
 			out = new ZipOutputStream(new FileOutputStream(file));
 			zip(dir, out, dir.toURI());
 			for (File f : list) {
-				zip(f, out, f.toURI());
+				File tmp = new File(target, f.getName());
+				FileInputStream in = new FileInputStream(f);
+				try {
+					unzip(in, tmp);
+					zip(tmp, out, tmp.getAbsoluteFile().toURI());
+				} finally {
+					closeQuietly(in);
+				}
 			}
 		} catch (IOException e) {
 			getLog().error(e);
