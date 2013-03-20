@@ -9,15 +9,15 @@
   <url>https://github.com/hwbllmnn/maven-hwbllmnn-plugin</url>
 
   <parent>
-    <groupId>org.deegree</groupId>
-    <artifactId>deegree</artifactId>
-    <version>3.2-rc2</version>
+    <groupId>de.occamlabs</groupId>
+    <artifactId>parent</artifactId>
+    <version>6</version>
   </parent>
 
   <repositories>
     <repository>
-      <id>deegree-repo</id>
-      <url>http://repo.deegree.org/content/groups/public</url>
+      <id>occamlabs-repo</id>
+      <url>https://jenkins.occamlabs.de/nexus/content/groups/repo/</url>
       <releases>
         <updatePolicy>never</updatePolicy>
       </releases>
