@@ -10,7 +10,7 @@
 
   <scm>
     <connection>scm:git:git@github.com:hwbllmnn/hwbllmnn-maven-plugin.git</connection>
-    <developerConnection>scm:git:scm:git:git@github.com:hwbllmnn/hwbllmnn-maven-plugin.git</developerConnection>
+    <developerConnection>scm:git:git@github.com:hwbllmnn/hwbllmnn-maven-plugin.git</developerConnection>
   </scm>
 
   <parent>
