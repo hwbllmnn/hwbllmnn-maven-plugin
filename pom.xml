@@ -3,14 +3,14 @@
   <groupId>de.hwbllmnn</groupId>
   <artifactId>hwbllmnn-maven-plugin</artifactId>
   <packaging>maven-plugin</packaging>
-  <version>1.0-alpha-2</version>
+  <version>1.0-alpha-3-SNAPSHOT</version>
   <name>hwbllmnn-maven-plugin</name>
   <url>https://github.com/hwbllmnn/maven-hwbllmnn-plugin</url>
 
   <scm>
     <connection>scm:git:git@github.com:hwbllmnn/hwbllmnn-maven-plugin.git</connection>
     <developerConnection>scm:git:git@github.com:hwbllmnn/hwbllmnn-maven-plugin.git</developerConnection>
-    <tag>hwbllmnn-maven-plugin-1.0-alpha-2</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <parent>
