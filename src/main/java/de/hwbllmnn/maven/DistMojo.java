@@ -31,70 +31,70 @@ import org.apache.maven.project.MavenProject;
  */
 public class DistMojo extends AbstractMojo {
 
-	/**
-	 * @parameter default-value="${project}"
-	 * @required
-	 * @readonly
-	 */
-	private MavenProject project;
+    /**
+     * @parameter default-value="${project}"
+     * @required
+     * @readonly
+     */
+    private MavenProject project;
 
-	/**
-	 * If set to true, default artifacts will not be copied.
-	 * 
-	 * @parameter default-value="false"
-	 * @required
-	 */
-	private boolean includeOnlyAttachedArtifacts;
+    /**
+     * If set to true, default artifacts will not be copied.
+     * 
+     * @parameter default-value="false"
+     * @required
+     */
+    private boolean includeOnlyAttachedArtifacts;
 
-	/**
-	 * If set to true, the artifacts of this project will be included along with the submodules' artifacts.
-	 * 
-	 * @parameter default-value="false"
-	 * @required
-	 */
-	private boolean includeProjectArtifacts;
+    /**
+     * If set to true, the artifacts of this project will be included along with the submodules' artifacts.
+     * 
+     * @parameter default-value="false"
+     * @required
+     */
+    private boolean includeProjectArtifacts;
 
-	public void execute() throws MojoExecutionException, MojoFailureException {
-		Log log = getLog();
-		File basedir = project.getBasedir();
-		File target = new File(basedir, "target/dist");
+    public void execute() throws MojoExecutionException, MojoFailureException {
+        Log log = getLog();
+        File basedir = project.getBasedir();
+        File target = new File(basedir, "target/dist");
 
-		if (!target.isDirectory() && !target.mkdirs()) {
-			log.warn("Could not create target directory: " + target);
-		}
+        if (!target.isDirectory() && !target.mkdirs()) {
+            log.warn("Could not create target directory: " + target);
+        }
 
-		List<Artifact> artifacts = new LinkedList<Artifact>();
-		@SuppressWarnings("unchecked")
-		List<Object> modules = project.getCollectedProjects();
-		if (includeProjectArtifacts) {
-			modules.add(project);
-		}
-		for (Object o : modules) {
-			MavenProject module = (MavenProject) o;
-			List<?> arts = module.getAttachedArtifacts();
-			for (Object obj : arts) {
-				artifacts.add((Artifact) obj);
-			}
-			if (!includeOnlyAttachedArtifacts) {
-				artifacts.add(module.getArtifact());
-			}
-		}
+        List<Artifact> artifacts = new LinkedList<Artifact>();
+        @SuppressWarnings("unchecked")
+        List<Object> modules = project.getCollectedProjects();
+        if (includeProjectArtifacts) {
+            modules.add(project);
+        }
+        for (Object o : modules) {
+            MavenProject module = (MavenProject) o;
+            List<?> arts = module.getAttachedArtifacts();
+            for (Object obj : arts) {
+                artifacts.add((Artifact) obj);
+            }
+            if (!includeOnlyAttachedArtifacts) {
+                artifacts.add(module.getArtifact());
+            }
+        }
 
-		log.info("Collected artifacts: " + artifacts);
+        log.info("Collected artifacts: " + artifacts);
 
-		for (Artifact a : artifacts) {
-			File file = a.getFile();
-			if (file == null) {
-				log.warn("Skipping non-existing artifact: " + a);
-				continue;
-			}
-			try {
-				copyFile(file, new File(target, file.getName()));
-				log.info("Copied artifact " + file.getName());
-			} catch (IOException e) {
-				log.warn("Could not copy artifact: " + file);
-			}
-		}
-	}
+        for (Artifact a : artifacts) {
+            File file = a.getFile();
+            if (file == null) {
+                log.warn("Skipping non-existing artifact: " + a);
+                continue;
+            }
+            try {
+                copyFile(file, new File(target, file.getName()));
+                log.info("Copied artifact " + file.getName());
+            } catch (IOException e) {
+                log.warn("Could not copy artifact: " + file);
+            }
+        }
+    }
 
 }
